@@ -17,7 +17,7 @@ class AuthController extends Controller
             $validated = $request->safe()->all();
             if(!Auth::attempt($validated)){
                 return response()->json([
-                'message' => 'Provided Credentials Wrong!'
+                'message' => 'Provided credentials are not registered!'
             ], 401);
             }
 
