@@ -12,28 +12,28 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     public function login(LoginRequest $request){
-        try {
-            $validated = $request->safe()->all();
-            $user = User::where($validated['email'], )
-        } catch (\Throwable $th) {
-            //throw $th;
-        }
+        // try {
+        //     $validated = $request->safe()->all();
+        //     $user = User::where($validated['email'], )
+        // } catch (\Throwable $th) {
+        //     //throw $th;
+        // }
     }
 
     public function register(RegisterRequest $request){
         try {
             $validated = $request->safe()->all();
             $validated['password'] = Hash::make($validated['password']);
-            User::create($validated);
+            $user = User::create($validated);
             return response()->json([
                 'message' => 'User Successfully Registered!',
-                'user' => $validated,
-            ]);
+                'user' => $user,
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Registration Failed!',
                 'error' => $e->getMessage()
-            ]);
+            ], 402);
         }
     }
 
