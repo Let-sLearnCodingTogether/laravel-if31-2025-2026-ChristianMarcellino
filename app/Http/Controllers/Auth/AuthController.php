@@ -7,17 +7,33 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function login(LoginRequest $request){
-        // try {
-        //     $validated = $request->safe()->all();
-        //     $user = User::where($validated['email'], )
-        // } catch (\Throwable $th) {
-        //     //throw $th;
-        // }
+        try {
+            $validated = $request->safe()->all();
+            if(!Auth::attempt($validated)){
+                return response()->json([
+                'message' => 'Provided Credentials Wrong!'
+            ], 401);
+            }
+
+            $user = $request->user();
+            $token = $user->createToken('api-token', ['*'])->plainTextToken;
+            return response()->json([
+                'message' => 'Login Successful!',
+                'token' => $token,
+                'user' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Login Failed!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function register(RegisterRequest $request){
@@ -33,7 +49,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Registration Failed!',
                 'error' => $e->getMessage()
-            ], 402);
+            ], 500);
         }
     }
 
