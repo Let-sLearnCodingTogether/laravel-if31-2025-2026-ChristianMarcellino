@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -53,11 +54,18 @@ class AuthController extends Controller
         }
     }
 
-    public function logout(){
+    public function logout(Request $request){
         try {
-            //code...
-        } catch (\Throwable $th) {
-            //throw $th;
+            $request->user()->currentAccessToken()->delete();
+            return response()->json([
+                'message' => 'Successfully Logout',
+                'data' => 'Test'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'data' => 'Test'
+            ], 500);
         }
     }
 }
