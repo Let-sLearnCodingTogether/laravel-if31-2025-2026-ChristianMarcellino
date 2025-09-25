@@ -23,9 +23,9 @@ class UpdateSpotRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|',
-            'address' => 'required|string',
-            'picture' => 'required|image|image:jpeg,png,jpg,webp',
+            'name' => 'nullable|string',
+            'address' => 'nullable|string',
+            'picture' => 'nullable|image|image:jpeg,png,jpg,webp',
             'category' => 'array|min:1|nullable',
             'category.*' => 'string|nullable',
         ];

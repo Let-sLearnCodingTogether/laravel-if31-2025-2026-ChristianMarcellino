@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class);
             $table->foreignIdFor(Spot::class);
             $table->text('content');
-            $table->int('rating');
+            $table->integer('rating');
             $table->timestamps();
             $table->softDeletes();
         });

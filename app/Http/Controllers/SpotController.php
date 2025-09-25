@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateSpotRequest;
 use App\Models\Category;
 use App\Models\Spot;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,16 +17,32 @@ class SpotController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $spots = Spot::with([
+                'user:id,name',
+                'categories:category,spot_id',
+            ])
+                ->withCount(['reviews'])
+                ->withSum('reviews', 'rating')
+                ->orderBy('created_at', 'desc')
+                ->paginate(request('size', 10));
+
+            return response()->json([
+                'message' => 'List of Data',
+                'data' => $spots,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to Show Data',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-       
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -41,22 +56,23 @@ class SpotController extends Controller
 
             $validated['user_id'] = Auth::user()->id;
             $validated['picture'] = $picture_path;
-            
-            $spot = Spot::create($validated);
-            if($spot){
-                $categories =[];
 
-                foreach($validated['categories'] as $category){
+            $spot = Spot::create($validated);
+            if ($spot) {
+                $categories = [];
+
+                foreach ($validated['category'] as $category) {
                     $categories[] = [
                         'spot_id' => $spot->id,
                         'category' => $category,
                     ];
                 }
                 Category::fillAndInsert($categories);
+
                 return response()->json([
-                'message' => 'Spot Successfully added',
-                'data' => $validated
-            ], 201);
+                    'message' => 'Spot Successfully added',
+                    'data' => $validated,
+                ], 201);
 
             }
         } catch (Exception $e) {
@@ -72,7 +88,17 @@ class SpotController extends Controller
      */
     public function show(Spot $spot)
     {
-        //
+        try {
+            return response()->json([
+                'message' => 'Data Successfully Showed!',
+                'data' => $spot->load(['categories:category,spot_id', 'user:id,name'])->loadCount(['reviews'])->loadSum('reviews', 'rating'),
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to Show Data',
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -89,7 +115,28 @@ class SpotController extends Controller
     public function update(UpdateSpotRequest $request, Spot $spot)
     {
         $validated = $request->safe()->all();
-        $spot->update($validated);
+        if (isset($validated['picture'])) {
+            $picture_path = Storage::disk('public')->putFile('spots', $request->file('picture'));
+        }
+
+        if (isset($validated['category'])) {
+            $categories = [];
+
+            foreach ($validated['category'] as $category) {
+                $categories[] = [
+                    'spot_id' => $spot->id,
+                    'category' => $category,
+                ];
+            }
+            Category::fillAndInsert($categories);
+        }
+
+        $spot->update([
+            'name' => $validated['name'],
+            'picture' => $picture_path ?? $spot->picture,
+            'address' => $validated['address'],
+        ]
+        );
     }
 
     /**
@@ -97,6 +144,24 @@ class SpotController extends Controller
      */
     public function destroy(Spot $spot)
     {
-        //
+        try {
+            $user = Auth::user();
+            if ($spot->user_id == $spot->id() || $user->role == 'admin') {
+                $spot->delete();
+
+                return response()->json([
+                    'message' => 'Data Successfully Deleted!',
+                ], 200);
+            } else {
+
+                return response()->json([
+                    'message' => 'Failed to Delete Data!',
+                ], 200);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
