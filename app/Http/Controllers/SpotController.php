@@ -79,7 +79,7 @@ class SpotController extends Controller
             return response()->json([
                 'message' => 'Failed to Add Data',
                 'error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
 
@@ -92,12 +92,12 @@ class SpotController extends Controller
             return response()->json([
                 'message' => 'Data Successfully Showed!',
                 'data' => $spot->load(['categories:category,spot_id', 'user:id,name'])->loadCount(['reviews'])->loadSum('reviews', 'rating'),
-            ]);
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Failed to Show Data',
                 'error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
 
@@ -146,7 +146,7 @@ class SpotController extends Controller
     {
         try {
             $user = Auth::user();
-            if ($spot->user_id == $spot->id() || $user->role == 'admin') {
+            if ($spot->user_id == $spot->id || $user->role == 'admin') {
                 $spot->delete();
 
                 return response()->json([
@@ -161,7 +161,22 @@ class SpotController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'error' => $e->getMessage(),
-            ]);
+            ], 500);
+        }
+    }
+
+    public function review(Spot $spot)
+    {
+        try {
+            return response()->json([
+                'message' => 'List of Reviews',
+                'data' => $spot->reviews()->with(['user:id,name'])->get(),
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to Show Data',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }

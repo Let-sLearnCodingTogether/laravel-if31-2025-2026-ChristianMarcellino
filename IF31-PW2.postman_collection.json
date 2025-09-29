@@ -160,7 +160,7 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+								"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 								"type": "text"
 							}
 						],
@@ -198,7 +198,7 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+								"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 								"type": "text"
 							}
 						],
@@ -262,7 +262,7 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+								"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 								"type": "text"
 							}
 						],
@@ -297,7 +297,7 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+								"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 								"type": "text"
 							}
 						],
@@ -352,7 +352,7 @@
 						"auth": {
 							"type": "noauth"
 						},
-						"method": "PATCH",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Accept",
@@ -361,7 +361,7 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+								"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 								"type": "text"
 							}
 						],
@@ -387,6 +387,11 @@
 									"key": "category[]",
 									"value": "category2",
 									"type": "text"
+								},
+								{
+									"key": "_method",
+									"value": "PUT",
+									"type": "text"
 								}
 							]
 						},
@@ -409,6 +414,10 @@
 			]
 		},
 		{
+			"name": "Review",
+			"item": []
+		},
+		{
 			"name": "Get Request",
 			"request": {
 				"auth": {
@@ -423,7 +432,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+						"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 						"type": "text"
 					}
 				],
@@ -457,7 +466,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Bearer 1|FHkC4WjygXKYp85yxnSDB0dDaD5XIJWqHSPr6IFU703ff318",
+						"value": "Bearer 5|OIfgE2r3S1Vpdi6B4Bc76cRbxsWzSoKf4zgOrdPH941588eb",
 						"type": "text"
 					}
 				],

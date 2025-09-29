@@ -9,4 +9,8 @@ class Review extends Model
 {
     protected $fillable = ['user_id', 'spot_id', 'content','rating'];
     use SoftDeletes;
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }

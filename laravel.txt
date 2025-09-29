@@ -160,6 +160,7 @@ class LoginRequest extends FormRequest
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SpotController;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -179,9 +180,75 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function (){
+    Route::get('spot/review/{spot}',[SpotController::class, 'review']);
     Route::post('logout',[AuthController::class, 'logout']);
     Route::apiResource('spot', SpotController::class);
+    Route::apiResource('review', ReviewController::class)
+    ->only([
+        'index',
+        'store',
+        'destroy'
+    ])
+    ->middlewareFor(['store'], 'ensureUserHasRole:user')
+    ->middlewareFor(['destroy'], 'ensureUserHasRole:admin');
+    
 });
+
+
 
 8. php artisan make:model -mcr -R
 9. php artisan make:model -mcr -R --api
+
+10. php artisan make:middleware EnsureUserHasRoleMiddleware
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class EnsureUserHasRoleMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next, string $role): Response
+    {
+
+        if($request->user()->role != $role){
+            return response()->json([
+                'Message' => "Unauthorized",
+                'data' => $request->user()->role,
+            ], 403);
+        }
+        return $next($request);
+    }
+}
+
+11. bootstrap App
+<?php
+
+use App\Http\Middleware\EnsureUserHasRoleMiddleware;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+           'ensureUserHasRole' => EnsureUserHasRoleMiddleware::class, 
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+
