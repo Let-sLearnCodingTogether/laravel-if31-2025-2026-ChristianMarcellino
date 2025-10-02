@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserManagementRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
 {
@@ -12,7 +14,17 @@ class UserManagementController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            return response()->json([
+                'Message' => 'User Successfully Showed',
+                'data' => User::all(),
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'Message' => $e->getMessage(),
+                'data' => null,
+            ], 500);
+        }
     }
 
     /**
@@ -34,13 +46,32 @@ class UserManagementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserManagementRequest $request, User $management)
     {
-        $validated = $request->safe()->all();
-        $userUpdate = $user->update($validated);
+        try {
+            if($management){
+                $validated = $request->safe()->all();
+                $management->update(
+                    ['role' => $validated['role']]);
+                return response()->json([
+                    'Message' => 'User Successfully Updated',
+                    'data' => $management,
+                ], 201);    
+            }else{
+                return response()->json([
+                    'Message' => "Gagal",
+                    'data' => null,
+                ]);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'Message' => $e->getMessage(),
+                'data' => null,
+            ], 500);
+        }
     }
 
-    /**
+    /**p
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

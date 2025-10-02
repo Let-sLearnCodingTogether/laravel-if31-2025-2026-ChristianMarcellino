@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function (){
     ->middlewareFor(['store', 'index'], 'ensureUserHasRole:user')
     ->middlewareFor(['destroy'], 'ensureUserHasRole:admin');
     
-    Route::apiResource('usermanagement', UserManagementController::class)
+    Route::apiResource('user/management', UserManagementController::class)
     ->only([
         'index',
         'update'
