@@ -1,0 +1,671 @@
+# Laravel
+
+Install Laravel Installer
+composer global require laravel/installer
+laravel new example-app
+
+cd example-app
+code .
+
+php artisan migrate
+php artisan install:api
+Setelah perintah ini berhasil, Anda akan menemukan file api.php baru di dalam direktori routes. Di sinilah kita akan mendaftarkan semua endpoint kita.
+
+php artisan make:model Quote -mcrR --api
+
+- make:model Quote
+Ini adalah perintah utamanya, yang bertugas untuk membuat file **Model** bernama `Quote.php` di dalam direktori `app/Models`.
+- m (Migration)Flag ini memberitahu Artisan untuk membuatkan file **migration** baru. File ini akan digunakan untuk membuat tabel `quotes` di database Anda.
+- c (Controller)Fla* ini akan membuat file **Controller** bernama `QuoteController.php`. Ini adalah tempat di mana Anda akan menulis logika untuk menerima permintaan (*request*) dan mengirimkan respons.
+- r (Resource)Flag ini membuat *controller* yang Anda minta (`c`) menjadi tipe **resource controller**. Artinya, *controller* tersebut akan langsung diisi dengan metode-metode standar untuk operasi CRUD, seperti `index()`, `store()`, `show()`, `update()`, dan `destroy()`.
+- --api`***Flag* ini adalah modifikasi untuk `r`. Ia memberitahu Artisan bahwa *resource controller* ini khusus untuk **API**. Perbedaannya adalah, metode `create()` dan `edit()` (yang biasanya untuk menampilkan halaman form HTML) akan dihilangkan, karena tidak diperlukan dalam API berbasis JSON.
+
+# Model & Migration
+
+# Request & Controller
+mengkonfigurasi file StoreQuoteRequest dan UpdateQuoteRequest.
+1. StoreQuoteRequest (Validasi Data Baru)
+- **Metode `authorize()`**
+    
+    Metode ini digunakan untuk memeriksa apakah pengguna yang sedang login **memiliki izin** untuk
+	melakukan permintaan ini. Untuk sekarang, kita akan mengizinkan siapa saja untuk membuat *quote*.
+    
+    Ubah `return false;` menjadi `return true;`:
+
+Metode rules()
+
+2. UpdateQuoteRequest (Validasi Saat Memperbarui)
+public function authorize(): bool
+{
+	return true;
+}
+- Method `rules()`
+    
+    Saat memperbarui data, pengguna mungkin hanya ingin mengubah satu kolom saja (misalnya, hanya isi *quote*-nya). Karena itu, kita tidak bisa menggunakan aturan `required`. Sebagai gantinya, kita gunakan `sometimes`.
+
+# Quote Controller
+nampilkan semua data (index)
+  // 1. Mengambil semua data dari model Quote
+$quotes = Quote::all();
+   // 2. Mengirimkan respons JSON jika berhasil
+ 	    return response()->json([
+                'message' => 'List Quote',
+                'data' => $quotes
+            ], 200);
+	} catch (\Exception $e) {
+            // 3. Mengirimkan respons JSON jika terjadi error
+            return response()->json([
+                'message' => $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+}
+
+Store
+public function store(StoreQuoteRequest $request)
+    {
+        try {
+            // 1. Ambil data yang sudah divalidasi dengan aman
+            $validatedData = $request->safe()->all();
+
+            // 2. Buat record baru di database
+            $quote = Quote::create($validatedData);
+
+            // 3. Kirim respons sukses beserta data yang baru dibuat
+            return response()->json([
+                'message' => 'Quote berhasil dibuat',
+                'data' => $quote
+            ], 201);
+
+        } catch (\Exception $e) {
+            // 4. Tangani jika terjadi error tak terduga
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada server',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+show
+	public function show(Quote $quote)
+    {
+        try {
+            return Response::json([
+                'message' => "Detail Quote",
+                'data' => $quote
+            ], 200);
+        } catch (Exception $e) {
+            return Response::json([
+                'message' => $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+
+update
+ public function update(UpdateQuoteRequest $request, Quote $quote)
+    {
+        try {
+            // 1. Ambil data yang sudah divalidasi
+            $validated = $request->safe()->all();
+
+            // 2. Update model dengan data yang tervalidasi
+            if($quote->update($validated)){
+                return Response::json([
+                    'message' => "Quote updated",
+                    'data' => $quote
+                ], 200);
+            }
+
+            // 3. Kembalikan respons dengan data yang sudah diperbarui
+            return Response::json([
+                'message' => "Quote not updated",
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            // 4. Tangani jika terjadi error tak terduga
+            return Response::json([
+                'message' => $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+
+destroy
+ public function destroy(Quote $quote)
+    {
+        try {
+            // 1. Hapus data dari database
+            if($quote->delete()){
+                return Response::json([
+                    'message' => "Quote deleted",
+                    'data' => null
+                ], 200);
+            }
+
+            // 2. Kirim respons yang sesuai
+            return Response::json([
+                'message' => "Quote not deleted",
+                'data' => null
+            ], 500);
+        } catch (\Exception $e) {
+            // 3. Tangani jika terjadi error
+            return Response::json([
+                'message' => $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+
+routes/api.php
+use App\Http\Controllers\QuoteController;
+use Illuminate\Support\Facades\Route;
+
+Route::apiResource('quotes', QuoteController::class);
+
+
+# Postman
+php artisan ser
+atur yg bagian 
+
+index -> get
+store -> post
+show -> get/{1}
+update -> put/patch/{1}
+destroy -> delete/1
+
+
+
+# react
+Langkah 1: Buka Terminal dan Navigasi ke Folder
+
+Langkah 2: Inisialisasi Proyek React Baru dengan Vite
+npm create vite@latest
+- `npm`: Ini adalah Node Package Manager, alat bantu kita untuk mengelola semua "paket" atau *library* kode.
+- `create vite@latest`: Perintah ini memberitahu `npm` untuk menjalankan paket `create-vite` dengan versi terbarunya (`@latest`), yang berfungsi sebagai pembuat proyek.
+
+1. **Project name: …**
+    - Ketik nama proyek Anda, lalu tekan Enter.
+2. **Select a framework: › - Use arrow keys. Return to submit.**
+    - Gunakan tombol panah bawah untuk memilih ** React **, lalu tekan Enter.
+3. **Select a variant: › - Use arrow keys. Return to submit.**
+    - Pilih ** JavaScript**, lalu tekan Enter.
+4. **Use rolldown-vite**
+    - Pilih ** Yes,** lalu tekan Enter
+5. Install with npm and start now ?
+    - Pilih ** Yes,** lalu tekan Enter
+
+Langkah 3: Masuk ke Folder Proyek dan Instalasi Dependencies
+
+Langkah 4: Menjalankan Aplikasi dan Melihat Hasilnya!
+npm run dev
+
+
+
+# Styling Aplikasi React Anda dengan Tailwind CSS
+Langkah 1: Instalasi Tailwindcss
+npm install tailwindcss @tailwindcss/vite
+
+Langkah 2: Mendaftarkan Tailwind CSS sebagai Plugin Vite
+vite.config.js
+import tailwindcss from '@tailwindcss/vite'
+ plugins: [
+    react(),
+    tailwindcss()
+  ],
+
+resolve : {
+    alias : {
+      "@" : "/src",
+      "@css" : "/src/assets/css"
+    }
+  }
+
+
+Langkah 3: Membuat File CSS Utama
+1. Di dalam folder `src`, buatlah folder baru bernama `assets`.
+2. Di dalam folder `assets` yang baru dibuat, buat lagi folder baru bernama `css`.
+3. Di dalam folder `css`, buat sebuah file baru bernama `styles.css`.
+4. Buka file `styles.css` tersebut dan tambahkan kode berikut:
+@import "tailwindcss";
+
+┣ 📂assets
+┃ ┣ 📂css
+┃ ┃ ┗ 📜styles.css
+┃ ┗ 📜react.svg
+┗ 📜main.jsx
+
+Langkah 4: Menguji Coba Konfigurasi di main.jsx
+src/main.jsx. Lalu hapus baris berikut ini, karena tidak kita butuhkan
+import './index.css' // HAPUS
+import App from './App.jsx' // HAPUS
+ <App /> // HAPUS
+
+Jika sudah lalu tambahkan baris berikut ini
+import "@css/style.css"
+
+  <div className='bg-blue-500'>
+      Hello
+    </div>
+
+Langkah 5: Membersihkan File Bawaan untuk Awal yang Baru
+Hapus file-file berikut ini di dalam folder src:
+src/App.jsx
+src/App.css
+src/index.css
+
+
+
+
+# Axios
+npm install axios
+
+Konfigurasi Axios
+Di dalam folder `src`, buat sebuah folder baru bernama `api`. Di dalam folder `api` tersebut, buat sebuah file baru bernama `apiClient.js`.
+
+Salin dan tempel kode berikut ke dalam file `apiClient.js` Anda:
+
+import axios from "axios";
+
+// Membuat instance Axios dengan konfigurasi default
+const apiClient = axios.create({
+    // URL dasar untuk semua permintaan ke API kita
+    baseURL: 'http://127.0.0.1:8000/api', 
+    // Header default yang akan dikirim pada setiap permintaan
+    headers: {
+        "Accept": "application/json"
+    }
+});
+
+export default apiClient;
+
+- `baseURL`: Dengan menetapkan ini, kita tidak perlu lagi mengetik `http://127.0.0.1:8000/api` setiap kali membuat permintaan. Cukup gunakan `/quotes`, `/quotes/1`, dan seterusnya.
+- `headers`: Ini memastikan bahwa setiap permintaan yang kita kirim akan memberitahu server Laravel bahwa kita mengharapkan respons dalam format JSON.
+- `export default apiClient`: Ini membuat *instance* `apiClient` yang sudah dikonfigurasi bisa diimpor dan digunakan di seluruh bagian aplikasi React kita.
+
+
+# Membuat Component & Pages
+┣ 📂api
+┃ ┗ 📜apiClient.js
+┣ 📂assets
+┃ ┣ 📂css
+┃ ┃ ┗ 📜style.css
+┃ ┗ 📜react.svg
+┣ 📂components
+┃ ┗ 📂ui
+┃   ┣ 📜Button.jsx
+┃   ┗ 📜Input.jsx
+┣ 📂pages
+┃ ┗ 📂quotes
+┃   ┣ 📜CreateQuote.jsx
+┃   ┣ 📜Quote.jsx
+┃   ┗ 📜UpdateQuote.jsx
+┗ 📜main.jsx
+
+
+# Button 
+Penjelasan kode
+- **`export default function Button({ type, children, ...props })`**
+    - `children`: Ini adalah *prop* spesial di React. Nilainya adalah apa pun yang Anda letakkan di antara tag pembuka dan penutup komponen. Contoh: `<Button>Klik Saya</Button>`, maka `children` di sini adalah teks "Klik Saya". Ini membuat teks tombol menjadi dinamis.
+    - `type`: Ini secara spesifik menerima tipe tombol HTML (misalnya, `"button"`, `"submit"`, atau `"reset"`).
+    - `...props`: Ini adalah **rest parameter** JavaScript. Fungsinya adalah mengumpulkan semua *props* lain yang tidak disebutkan secara eksplisit (`type`, `children`) ke dalam sebuah objek bernama `props`. Ini membuat komponen sangat fleksibel. Anda bisa menambahkan *prop* apa pun seperti `onClick`, `disabled`, dll., dan semuanya akan terkumpul di sini.
+- **`className="..."`**
+Ini adalah kelas-kelas dari **Tailwind CSS** yang mendefinisikan tampilan tombol.
+    - `px-5 py-2.5 rounded-lg`: Mengatur *padding* (ruang di dalam) dan sudut yang membulat.
+    - `bg-zinc-900 text-white font-semibold`: Mengatur warna latar, warna teks, dan ketebalan font.
+    - `hover:-translate-y-0.5 hover:shadow-lg`: Memberi efek animasi saat kursor diarahkan ke tombol (sedikit terangkat dan muncul bayangan).
+    - `active:scale-95`: Memberi efek saat tombol diklik (sedikit mengecil).
+- **`{...props}`**
+Ini adalah **spread operator**. Fungsinya adalah "menebarkan" semua isi dari objek `props` sebagai atribut ke elemen `<button>` HTML. Jadi, jika Anda menulis `<Button onClick={handleClick} disabled />`, maka atribut `onClick` dan `disabled` akan secara otomatis diterapkan ke tombol.
+
+# Input
+### **Penjelasan Kode**
+
+- **`export default function Input({ id, type = "text", label, ...props })`**
+    - `id`: *Prop* ini sangat penting untuk aksesibilitas, digunakan untuk menghubungkan `<label>` (`htmlFor={id}`) dengan `<input>` (`id={id}`).
+    - `type = "text"`: Ini adalah **nilai default**. Jika Anda tidak memberikan *prop* `type` saat menggunakan komponen ini, maka secara otomatis tipenya akan menjadi `"text"`.
+    - `label`: Teks yang akan ditampilkan sebagai label untuk input.
+    - `...props`: Sama seperti komponen `Button`, ini mengumpulkan semua *props* lain seperti `value`, `onChange`, `placeholder`, `name`, dll.
+- **`{label && (<label>...</label>)}`**
+Ini adalah **conditional rendering**. Artinya, elemen `<label>` hanya akan ditampilkan **jika** *prop* `label` ada isinya (bukan `null` atau string kosong). Ini membuat label menjadi opsional.
+- **`<input {...props} />`**
+Sama seperti pada komponen `Button`, ini menerapkan semua *props* tambahan (seperti `onChange`, `placeholder`) langsung ke elemen `<input>` HTML.
+
+# Quotes.jsx
+
+- **`useState` (Hook)**
+    - `const [isLoading, setIsLoading] = useState(false);`: Membuat *state* untuk melacak status pengambilan data. `true` berarti sedang memuat, `false` berarti sudah selesai.
+    - `const [quotes, setQuotes] = useState([]);`: Membuat *state* untuk menyimpan data kutipan yang berhasil diambil dari API. Nilai awalnya adalah sebuah *array* kosong.
+
+- **`useCallback` (Hook)**
+    - `const fetchQuotes = useCallback(async () => { ... }, []);`: *Hook* `useCallback` "mengingat" fungsi `fetchQuotes` agar tidak dibuat ulang setiap kali komponen di-*render*. Ini adalah optimasi, terutama penting karena fungsi ini digunakan di dalam `useEffect`.
+    - **`try...catch...finally`**: Ini adalah blok penanganan *error*.
+        - `try`: Kode di sini dieksekusi. `setIsLoading(true)` diatur, lalu `http.get("/quotes")` memanggil API. Jika berhasil, `setQuotes(response.data.data)` akan menyimpan data ke dalam *state*.
+        - `catch`: Jika terjadi *error* saat memanggil API, kode di blok ini akan berjalan.
+        - `finally`: Kode di blok ini **selalu** berjalan, baik berhasil maupun gagal. `setIsLoading(false)` di sini memastikan status *loading* selalu dimatikan setelah proses selesai.
+
+- **`useEffect` (Hook)**
+    - `useEffect(() => { fetchQuotes(); }, [fetchQuotes]);`: *Hook* ini menjalankan "efek samping", seperti mengambil data. Kode ini memberitahu React: "Jalankan fungsi `fetchQuotes` satu kali setelah komponen ini pertama kali ditampilkan di layar."
+
+- **Conditional Rendering (`if (isLoading)`)**
+    - Jika `isLoading` bernilai `true`, komponen akan menampilkan teks "Loading...".
+    - Jika `isLoading` bernilai `false`, komponen akan menampilkan daftar kutipan.
+
+- **Menampilkan Daftar (`quotes.map(...)`)**
+    - Ini adalah cara standar di React untuk mengubah sebuah *array* data (`quotes`) menjadi daftar elemen HTML.
+    - `key={quote.id}`: Atribut `key` ini wajib ada dan sangat penting untuk performa. React menggunakannya untuk mengidentifikasi setiap item secara unik saat ada perubahan pada daftar.
+
+
+# Uji Coba
+main.jsx 
+<QuotePage /> dari Quote.jsx
+
+
+# Delete Quote
+- `onClick={...}`: Ini adalah *event handler*. Atribut ini memberitahu React untuk menjalankan fungsi di dalamnya **ketika tombol diklik**.
+- `() => deleteQuote(quote.id)`: Ini adalah bagian yang paling penting.
+    - Kita menggunakan **fungsi panah (arrow function)** `() => ...` untuk "membungkus" pemanggilan fungsi `deleteQuote`. **Mengapa?** Jika kita hanya menulis `onClick={deleteQuote(quote.id)}`, fungsi tersebut akan langsung dijalankan saat komponen di-*render*, bukan saat tombol diklik. Ini akan menyebabkan semua kutipan terhapus seketika!
+    - Dengan menggunakan `() =>`, kita membuat sebuah fungsi baru yang baru akan dijalankan ketika `onClick` terjadi. Fungsi inilah yang kemudian memanggil `deleteQuote`.
+    - `quote.id`: Kita meneruskan `id` dari kutipan yang sedang di-looping saat itu. Ini memastikan kita menghapus kutipan yang benar.
+
+Mari kita buat fungsi async baru bernama deleteQuote. Fungsi ini perlu menerima satu parameter, yaitu id dari quote yang ingin kita hapus.
+
+Tambahkan kode berikut di dalam komponen Quote: 
+const [isLoading, setIsLoading] = useState(false);
+
+// Kode lain
+const deleteQuote = async (id) => {
+    try {
+        // 1. Tampilkan indikator loading
+        setIsLoading(true);
+
+        // 2. Kirim permintaan DELETE ke API
+        const response = await http.delete(`/quotes/${id}`);
+
+        // 3. Jika berhasil, muat ulang data kutipan
+        if (response.status === 200) {
+            fetchQuotes();
+        }
+    } catch (error) {
+        // 4. Tangani jika terjadi error
+        console.error("Gagal menghapus quote:", error);
+    } finally {
+        // 5. Sembunyikan indikator loading
+        setIsLoading(false);
+    }
+}
+
+
+# Add New Quote
+Component dan State
+Silakan buka file CreateQuote.jsx
+
+### **Penjelasan Kode:**
+- **Imports**: Kita mengimpor semua yang kita butuhkan di awal.
+    - `http`: Klien API kita untuk berkomunikasi dengan server.
+    - `Button`, `Input`: Komponen UI yang sudah kita siapkan sebelumnya untuk konsistensi tampilan.
+    - `useId`, `useState`: *Hooks* bawaan dari React. `useState` untuk mengelola *state*, dan `useId` untuk menghasilkan ID unik (berguna untuk aksesibilitas pada label form).
+
+- **State Management**:
+    - `const [isLoading, setIsLoading] = useState(false)`: *State* ini bertipe *boolean* (`true`/`false`). Fungsinya adalah untuk melacak apakah aplikasi sedang dalam proses mengirim data ke server. Ini sangat penting untuk memberikan umpan balik ke pengguna, seperti menampilkan teks "Saving..." pada tombol.
+    - `const [form, setForm] = useState({ ... })`: Ini adalah *state* utama kita. Kita menggunakan sebuah objek untuk menampung semua nilai dari setiap *input* dalam form. Menginisialisasinya dengan *string* kosong adalah praktik yang baik.
+
+# Menangani Input Pengguna
+Tambahkan fungsi handleOnChange di dalam komponen CreateNewQuote:
+### **Penjelasan Kode:**
+
+- `const { name, value } = event.target;`: Ketika sebuah *event* `onChange` terjadi pada sebuah *input*, `event.target` merujuk pada elemen *input* itu sendiri. Kita mengambil properti `name` dan `value` darinya. **Penting:** Properti `name` pada elemen `<Input>` harus sama persis dengan *key* yang ada di *state* `form` kita (misalnya, `name="author"` akan menargetkan `form.author`).
+- `setForm({ ... })`: Kita memanggil fungsi *setter* untuk memperbarui *state*.
+- `...form`: Ini adalah *spread syntax*. Kita menyalin semua nilai yang sudah ada di dalam objek `form`.
+- `[name]: value`: Ini adalah *computed property name*. Bagian ini secara dinamis memperbarui *key* yang sesuai. Jika pengguna mengetik di *input* dengan `name="author"`, maka baris ini akan menjadi `author: value`, dan hanya properti `author` di dalam *state* `form` yang akan diperbarui.
+
+# Mengirim Data ke Server saat Form Submit
+Tambahkan fungsi onSubmit di bawah handleOnChange:
+### **Penjelasan Kode:**
+
+- `event.preventDefault()`: Langkah pertama dan paling penting dalam fungsi *submit* form. Ini mencegah perilaku *default* *browser* yang akan me-*reload* halaman.
+- `try...catch...finally`: Sama seperti pada fungsi hapus, kita menggunakan blok ini untuk menangani panggilan API dengan aman.
+- `setIsLoading(true)`: Memberi tahu aplikasi kita untuk masuk ke mode *loading*.
+- `await http.post("/quotes", form)`: Kita mengirim permintaan HTTP `POST` ke *endpoint* `/quotes`. Argumen kedua, `form`, adalah *payload* atau data yang kita kirim.
+- `if (response.status === 201)`: Status `201 Created` adalah respons standar dari server yang menandakan bahwa sumber daya baru telah berhasil dibuat.
+
+# Tampilan Form Create New Quote
+Terakhir, mari kita bangun elemen visualnya. Kita akan menggunakan tag <form> dan komponen <Input> serta <Button> kita.
+Ganti bagian return dari komponen Anda dengan kode JSX berikut:
+  <div className="container mx-auto">
+            <form onSubmit={onSubmit}>
+                <div className="space-y-3">
+                    <Input id={useId()} name="quote" value={form.quote} onChange={handleOnChange} label="Quote" placeholder="Isi kutipan..." />
+                    <Input id={useId()} name="author" value={form.author} onChange={handleOnChange} label="Author" placeholder="Nama penulis..." />
+                    <Input id={useId()} name="year" type="number" value={form.year} onChange={handleOnChange} label="Year" placeholder="Tahun..." />
+                    <Input id={useId()} name="category" value={form.category} onChange={handleOnChange} label="Category" placeholder="Kategori..." />
+                    <Input id={useId()} name="source" value={form.source} onChange={handleOnChange} label="Source" placeholder="Sumber kutipan..." />
+                    
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Saving..." : "Save"}
+                    </Button>
+                </div>
+            </form>
+        </div>
+
+Penjelasan Kode:
+- `<form onSubmit={onSubmit}>`: Kita menghubungkan fungsi `onSubmit` kita ke *event* `onSubmit` dari form. Ini akan terpanggil ketika tombol dengan `type="submit"` di dalamnya diklik.
+- **Props pada Komponen `<Input>`**:
+    - `name="quote"`: Atribut `name` ini **harus cocok** dengan *key* di *state* `form` kita. Inilah yang membuat fungsi `handleOnChange` kita bekerja.
+    - `value={form.quote}`: Kita mengikat nilai *input* ke *state* kita. Ini menjadikannya **Controlled Component**, di mana React sepenuhnya mengontrol data form.
+    - `onChange={handleOnChange}`: Setiap kali pengguna mengetik, fungsi `handleOnChange` akan dipanggil.
+- **Logika pada Komponen `<Button>`**:
+    - `disabled={isLoading}`: Tombol akan dinonaktifkan jika `isLoading` bernilai `true`. Ini mencegah pengguna mengklik tombol berkali-kali saat data sedang diproses.
+    - `{isLoading ? "Saving..." : "Save"}`: Teks di dalam tombol akan berubah secara dinamis berdasarkan *state* `isLoading`. Ini adalah umpan balik visual yang jelas bagi pengguna.
+
+
+# Uji Coba
+Buka kembali file `main.jsx` dan ganti component `Quote.jsx` dengan `CreateQuote.jsx`
+
+
+# Update Quote
+Apa saja persamaan antara form untuk membuat quote baru dan form untuk memperbarui kutipan yang sudah ada?
+
+- Keduanya memerlukan **kolom input yang sama** (quote, author, year, dll.).
+- Keduanya memerlukan **state management** untuk menangani nilai input (`form`) dan status loading (`isLoading`).
+- Keduanya memiliki **tombol "Save"** atau "Update" untuk mengirim data ke server.
+- Keduanya memerlukan **logika pengiriman data** (API call).
+
+Perbedaan utamanya hanya satu: **Form Update harus mengambil (fetch) data yang ada terlebih dahulu dan mengisikannya ke dalam kolom input.**
+
+> Agar kita tidak mengulang mengedit file `UpdateQuote.jsx` kita akan lewati dulu dan melanjutkan ke `react router` terlebih dahulu
+
+    ### Component `UpdateQuote.jsx` (Jika sudah selesai dengan react-router)
+1. Langkah 1: Mengambil ID dari URL dengan `useParams`
+    Hal pertama yang harus diketahui oleh komponen kita adalah, "Kutipan mana yang harus saya edit?". Informasi ini kita dapatkan dari URL dinamis yang telah kita buat (`/update-quote/:id`).
+    **Buka file `src/pages/quotes/UpdateQuote.jsx`**
+
+import { ..., useParams } from "react-router-dom"; // Pastikan useParams diimpor
+
+export default function UpdateQuote() {
+    const params = useParams(); // Mengambil parameter dari URL
+    const navigation = useNavigate();
+    // ...
+
+Langkah 2: Mengambil Data & Mengisi Form secara Otomatis
+// ... setelah state ...
+
+const fetchQuote = useCallback(async () => {
+  try {
+    const response = await http.get(`/quotes/${params.id}`);
+    // Isi state form dengan data dari server
+    setForm(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+}, [params.id]); // <-- dependensi
+
+useEffect(() => {
+  // Jalankan fungsi fetchQuote saat komponen pertama kali dimuat
+  fetchQuote();
+}, [fetchQuote]);
+
+Langkah 3: Menyesuaikan Fungsi onSubmit untuk Mengirim Update
+kita menggunakan metode http.put dan menyertakan id di URL.
+onSubmit
+const onSubmit = async (event) => {
+  event.preventDefault();
+  try {
+    setIsLoading(true);
+
+    // Gunakan http.put dan sertakan params.id di URL
+    const response = await http.put(`/quotes/${params.id}`, form);
+
+    // Status sukses untuk update biasanya 200 OK
+    if (response.status === 200) {
+      navigation("/", {
+        replace: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+- **`http.put(`/quotes/${params.id}`, form)`**:
+    - Kita menggunakan metode **`PUT`**, yang merupakan standar HTTP untuk **memperbarui** sumber daya yang ada secara keseluruhan.
+    - Kita kembali menggunakan `params.id` untuk memberi tahu server secara spesifik kutipan mana yang harus diperbarui.
+    - `form` tetap menjadi *payload* atau data yang kita kirim.
+- **`if (response.status === 200)`**: Kode status HTTP untuk pembaruan yang berhasil biasanya adalah **`200 OK`**, berbeda dengan `201 Created` saat membuat data baru.
+
+# Kode Lengkap UpdateQuote.jsx
+...
+
+# React Router
+Install React Router
+npm i react-router
+
+Struktur Folder
+┣ 📂api
+┃ ┗ 📜apiClient.js
+┣ 📂assets
+┃ ┣ 📂css
+┃ ┃ ┗ 📜style.css
+┃ ┗ 📜react.svg
+┣ 📂components
+┃ ┗ 📂ui
+┃   ┣ 📜Button.jsx
+┃   ┗ 📜Input.jsx
+┣ 📂pages
+┃ ┣ 📂articles
+┃ ┃ ┣ 📜Articles.jsx
+┃ ┃ ┗ 📜WelcomeArticle.jsx
+┃ ┗ 📂quotes
+┃   ┣ 📜CreateQuote.jsx
+┃   ┣ 📜Quote.jsx
+┃   ┗ 📜UpdateQuote.jsx
+┣ 📂routes --
+┃ ┗ 📜router.js --
+┗ 📜main.jsx
+
+
+# Membuat Routing
+
+1. Pemuatan Standar (Eager Loading)
+Ini adalah pendekatan yang paling dasar. 
+
+- **Cara Kerja:** Seluruh kode untuk semua halaman (komponen) yang Anda daftarkan di router akan digabungkan menjadi satu file JavaScript besar dan diunduh oleh browser pengguna saat pertama kali membuka aplikasi.
+- **Kelemahan:** Jika aplikasi Anda memiliki banyak halaman, waktu muat awal bisa menjadi sangat lambat. Pengguna dipaksa mengunduh kode untuk halaman "Profil" atau "Pengaturan" padahal mereka mungkin hanya ingin melihat halaman "Beranda". Ini tidak efisien dan membuang-buang data.
+
+2. Pemuatan Malas (Lazy Loading)
+Ini adalah pendekatan modern dan jauh lebih efisien.
+
+- **Cara Kerja:** React Router hanya akan mengunduh kode untuk halaman yang sedang diakses oleh pengguna. Jika pengguna membuka halaman "Beranda", hanya kode untuk "Beranda" yang diunduh. Kode untuk halaman lain akan menunggu hingga benar-benar dibutuhkan.
+- **Keuntungan:** Waktu muat awal aplikasi menjadi **jauh lebih cepat**, karena browser hanya perlu mengunduh sebagian kecil kode yang diperlukan. Ini memberikan pengalaman pengguna (UX) yang jauh lebih baik, terutama bagi mereka yang memiliki koneksi internet lambat.
+
+
+Router.js
+
+### Penjelasan Kode
+
+- **`createBrowserRouter([...])`**: Fungsi ini membuat router untuk aplikasi. Ia menerima sebuah array, di mana setiap elemen di dalamnya adalah sebuah **objek rute**.
+- **Objek Rute**: Setiap objek `{...}` memetakan sebuah URL ke sebuah komponen.
+    - `path`: String yang mendefinisikan **URL** di browser.
+    - `lazy`: Fungsi yang akan dieksekusi **hanya saat `path` tersebut diakses**. Ini membuat aplikasi lebih cepat karena tidak semua kode halaman dimuat di awal.
+- **`await import(...)`**: Ini adalah perintah untuk **mengunduh file komponen secara dinamis** saat dibutuhkan. `.default` digunakan untuk mengambil komponen React dari file tersebut.
+- **`path: "/update-quote/:id"`**: Tanda `:id` adalah **parameter dinamis**. Artinya, URL seperti `/update-quote/123` akan cocok, dan `123` bisa kita gunakan sebagai ID di dalam komponen.
+
+# Menggunakan Router.js (main.jsx)
+import router from "./routes/router";
+
+    <RouterProvider router={router} />
+
+
+# Uji Coba Routing
+Membuat Link Navigasi di Halaman Utama (Quote.jsx)
+Buka file `src/pages/quotes/Quote.jsx`
+
+1. Impor Komponen `NavLink`
+import { NavLink } from "react-router-dom";
+NavLink adalah komponen spesial dari React Router yang berfungsi seperti tag <a> pada HTML biasa. Kelebihannya, NavLink tidak akan menyebabkan refresh pada seluruh halaman
+
+2. Tambahkan Link ke dalam JSX
+<div className="flex justify-between items-center mb-4">
+    <h1 className="font-semibold text-2xl">Quotes</h1>
+    <NavLink 
+        to="/new-quote" 
+        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+    >
+        Create New Quote
+    </NavLink>
+</div>
+
+- **`<NavLink>`**: Kita menggunakan komponen yang baru saja diimpor.
+- **`to="/new-quote"`**: *Prop* `to` ini adalah bagian terpenting. Ini memberitahu React Router untuk menavigasi ke *path* `/new-quote` ketika link ini diklik. Alamat ini harus cocok dengan salah satu `path` yang telah kita daftarkan di file `router.js`.
+
+3. Navigasi Quotes.jsx ke UpdateQuote.jsx 
+<div className="mt-5">
+  <Button onClick={() => deleteQuote(quote.id)}>Hapus</Button>
+  <NavLink to={`/update-quote/${quote.id}`}>Update</NavLink>
+</div>;
+
+# Redirect Otomatis Setelah Submit Form (CreateQuote.jsx)
+Buka file src/pages/quotes/CreateQuote.jsx
+1. 
+import { useNavigate } from "react-router-dom";
+
+2. 
+export default function CreateNewQuote() {
+    const navigation = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    // ... sisa kode state Anda
+
+3. Panggil Navigasi di Dalam Fungsi onSubmit
+const onSubmit = async (event) => {
+  event.preventDefault();
+  try {
+    setIsLoading(true);
+    const response = await http.post("/quotes", form);
+
+    if (response.status === 201) {
+      // Arahkan pengguna ke halaman utama
+      navigation("/", {
+        replace: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+
+
+
+
+
+
+
